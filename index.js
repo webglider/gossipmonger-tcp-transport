@@ -99,6 +99,32 @@ TcpTransport.prototype.deltas = function deltas (remotePeer, localPeer, deltasTo
     });
 };
 
+
+/*
+  * `remotePeer`: _Object_ Peer to send rpc to.
+    * `transport`: _Object_ TCP transport data.
+      * `host`: _String_ Host to connect to.
+      * `port`: _Integer_ Port to connect to.
+  * `localPeer`: _Object_ Sender peer.
+    * `id`: _String_ Sender peer id.
+    * `transport`: _Object_ TCP transport data.
+      * `host`: _String_ Host to connect to.
+      * `port`: _Integer_ Port to connect to.
+*/ 
+TcpTransport.prototype.bootstrap = function bootstrap (remotePeer, localPeer) {
+    var self = this;
+
+    self.rpc(remotePeer, {
+        bootstrap: {
+          sender: {
+            id: localPeer.id,
+            transport: localPeer.transport
+          }
+        }
+    });
+};
+
+
 /*
   * `remotePeer`: _Object_ Peer to send rpc to.
     * `transport`: _Object_ TCP transport data.
@@ -158,7 +184,10 @@ TcpTransport.prototype.listen = function listen (options, callback) {
                 self.emit('deltas', data.sender, data.deltas);
             } else if (data.digest) {
                 self.emit('digest', data.sender, data.digest);
+            } else if (data.bootstrap) {
+                self.emit('bootstrap-request', data.bootstrap);
             }
+
         });
         connection.on('error', function (error) {
             self.emit('error', error);
